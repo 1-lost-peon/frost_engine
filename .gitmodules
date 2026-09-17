@@ -1,0 +1,3 @@
+[submodule "deps/odin_ecs"]
+	path = deps/odin_ecs
+	url = https://github.com/odin-engine/ode_ecs.git
