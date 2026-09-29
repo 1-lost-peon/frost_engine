@@ -1,15 +1,18 @@
 package engine
 
-import mn "deps:muninn"
+// import mn "deps:frost_engine/deps/muninn"
+import mn "../deps/muninn"
 
 path  := "c:/dev/my_app"
 host  := "127.0.0.1"
 port  := 22
 delay := 15
 err   := "This is not good!!!"
+version := "0.0.1"
 
 App :: struct {
     name: string,
+    version: string,
 
     plugins: [dynamic]Plugin,
     schedule: Schedule,
@@ -22,8 +25,9 @@ App :: struct {
     running: bool,
 }
 
-init_app :: proc(app: ^App) { // RENAME TO STARTUP_APP
+startup_app :: proc(app: ^App) { // RENAME TO STARTUP_APP
     app.running = true
+    app.version = version
 
     app.time.fixed_delta = 1.0 / 60.0
 
@@ -34,17 +38,18 @@ init_app :: proc(app: ^App) { // RENAME TO STARTUP_APP
     }
     // run_systems(app, .Startup) --> SHOULD BE STARTUP
 
-    mn.init(level = .DEBUG, log_dir = "C:/logs/myapp/app.jsonl")
+    log_init(level = .TRACE, log_dir = ".logs/app.jsonl")
 
-    mn.title("Muninn")
+    log_title("My Game")
 
-    mn.trace("cache warm: %d entries", 128)
-    mn.debug("config loaded from %s", path)
-    mn.info("listening on %s:%d", host, port)
-    mn.warn("retrying in %v", delay)
-    mn.error("connection dropped: %v", err)
+    log_trace("cache warm: %d entries", 128)
+    log_debug("config loaded from %s", path)
+    log_info("My Game Version %s starting", app.version)
+    log_sep("-")
+    log_warn("retrying in %v", delay)
+    log_error("connection dropped: %v", err)
 
-    mn.sep(char = "-", color = mn.GRAY)
+    // mn.sep(char = "-", color = mn.GRAY)
 
     // only if you bail out without returning from main:
     // mn.exit(1)
