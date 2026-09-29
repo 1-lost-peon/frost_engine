@@ -1,3 +1,6 @@
 [submodule "deps/odin_ecs"]
 	path = deps/odin_ecs
 	url = https://github.com/odin-engine/ode_ecs.git
+[submodule "deps/muninn"]
+	path = deps/muninn
+	url = https://github.com/dlroy88osu/Muninn.git

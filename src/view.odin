@@ -3,7 +3,7 @@ package engine
 import "core:fmt"
 import rl "vendor:raylib"
 
-import ecs "deps:ode_ecs/src"
+import ecs "deps:odin_ecs/src"
 
 // register_view(app, Position, Velocity)
 

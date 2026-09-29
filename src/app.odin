@@ -1,5 +1,13 @@
 package engine
 
+import mn "deps:muninn"
+
+path  := "c:/dev/my_app"
+host  := "127.0.0.1"
+port  := 22
+delay := 15
+err   := "This is not good!!!"
+
 App :: struct {
     name: string,
 
@@ -25,6 +33,21 @@ init_app :: proc(app: ^App) { // RENAME TO STARTUP_APP
         plugin.build(app)
     }
     // run_systems(app, .Startup) --> SHOULD BE STARTUP
+
+    mn.init(level = .DEBUG, log_dir = "C:/logs/myapp/app.jsonl")
+
+    mn.title("Muninn")
+
+    mn.trace("cache warm: %d entries", 128)
+    mn.debug("config loaded from %s", path)
+    mn.info("listening on %s:%d", host, port)
+    mn.warn("retrying in %v", delay)
+    mn.error("connection dropped: %v", err)
+
+    mn.sep(char = "-", color = mn.GRAY)
+
+    // only if you bail out without returning from main:
+    // mn.exit(1)
 }
 
 shutdown_app :: proc(app: ^App) {
