@@ -25,7 +25,7 @@ App :: struct {
     running: bool,
 }
 
-startup_app :: proc(app: ^App) { // RENAME TO STARTUP_APP
+app_startup :: proc(app: ^App) { // RENAME TO STARTUP_APP
     app.running = true
     app.version = version
 
@@ -42,12 +42,12 @@ startup_app :: proc(app: ^App) { // RENAME TO STARTUP_APP
 
     log_title("My Game")
 
-    log_trace("cache warm: %d entries", 128)
-    log_debug("config loaded from %s", path)
+    // log_trace("cache warm: %d entries", 128)
+    // log_debug("config loaded from %s", path)
     log_info("My Game Version %s starting", app.version)
-    log_sep("-")
-    log_warn("retrying in %v", delay)
-    log_error("connection dropped: %v", err)
+    // log_sep("-")
+    // log_warn("retrying in %v", delay)
+    // log_error("connection dropped: %v", err)
 
     // mn.sep(char = "-", color = mn.GRAY)
 
@@ -55,19 +55,20 @@ startup_app :: proc(app: ^App) { // RENAME TO STARTUP_APP
     // mn.exit(1)
 }
 
-shutdown_app :: proc(app: ^App) {
+app_shutdown :: proc(app: ^App) {
+    log_info("My Game shuting down")
     shutdown_world(&app.world)
 
     delete(app.schedule.startup)
     delete(app.schedule.update)
     delete(app.schedule.fixed_update)
     // run_systems(app, .Shutdown) --> THIS SHOULD BE HERE
+    log_info("Good bye!")
 }
 
-
-run_app :: proc(app: ^App) {
+app_run :: proc(app: ^App) {
     run_systems(app, .Startup) // NEEDS A NEW NAME... BEFORE LOOP. MAYBE WE JUST MOVE IT
-
+    log_info("App running...")
     for app.running {
         run_systems(app, .Frame_Begin)
         app.time.accumulator += app.time.delta
