@@ -1,88 +1,147 @@
 package engine
 
-// import mn "deps:frost_engine/deps/muninn"
-import mn "../deps/muninn"
-
-path  := "c:/dev/my_app"
-host  := "127.0.0.1"
-port  := 22
-delay := 15
-err   := "This is not good!!!"
-version := "0.0.1"
+import "base:intrinsics"
+import "core:sys/posix"
 
 App :: struct {
-    name: string,
-    version: string,
+    settings: App_Settings,
 
-    plugins: [dynamic]Plugin,
+    plugins:  [dynamic]Plugin,
     schedule: Schedule,
 
     world: World,
-    time: Time,
+    time:  Time,
 
     platform: Platform,
 
     running: bool,
 }
 
-app_startup :: proc(app: ^App) { // RENAME TO STARTUP_APP
-    app.running = true
-    app.version = version
-
-    app.time.fixed_delta = 1.0 / 60.0
-
-    init_world(&app.world)
-
-    for plugin in app.plugins {
-        plugin.build(app)
-    }
-    // run_systems(app, .Startup) --> SHOULD BE STARTUP
-
-    log_init(level = .TRACE, log_dir = ".logs/app.jsonl")
-
-    log_title("My Game")
-
-    // log_trace("cache warm: %d entries", 128)
-    // log_debug("config loaded from %s", path)
-    log_info("My Game Version %s starting", app.version)
-    // log_sep("-")
-    // log_warn("retrying in %v", delay)
-    // log_error("connection dropped: %v", err)
-
-    // mn.sep(char = "-", color = mn.GRAY)
-
-    // only if you bail out without returning from main:
-    // mn.exit(1)
+App_Mode :: enum i32 {
+    DEVELOPMENT,
+    PRODUCTION,
 }
 
-app_shutdown :: proc(app: ^App) {
-    log_info("My Game shuting down")
-    shutdown_world(&app.world)
+App_Settings :: struct {
+    name:    string,
+    version: string,
+    mode:    App_Mode,
+}
 
-    delete(app.schedule.startup)
-    delete(app.schedule.update)
-    delete(app.schedule.fixed_update)
-    // run_systems(app, .Shutdown) --> THIS SHOULD BE HERE
-    log_info("Good bye!")
+
+// ============================================================================
+// App Lifecycle
+// ============================================================================
+
+app_startup :: proc(app: ^App) {
+    startup_platform(app)
+    startup_logging(app)
+    startup_runtime(app)
+    run_systems(app, .Startup)
 }
 
 app_run :: proc(app: ^App) {
-    run_systems(app, .Startup) // NEEDS A NEW NAME... BEFORE LOOP. MAYBE WE JUST MOVE IT
     log_info("App running...")
+
     for app.running {
-        run_systems(app, .Frame_Begin)
-        app.time.accumulator += app.time.delta
-
-        // Fixed simulation
-        for app.time.accumulator >= app.time.fixed_delta {
-            run_systems(app, .Fixed_Update)
-
-            app.time.accumulator -= app.time.fixed_delta
-        }
-
-        // Normal per-frame update
-        run_systems(app, .Update)
+        run_frame(app)
     }
+}
 
-    run_systems(app, .Shutdown) // SHOULD BE FRAME_END
+app_shutdown :: proc(app: ^App) {
+    run_systems(app, .Shutdown)
+    log_info("App shutting down")
+
+    shutdown_world(&app.world)
+    shutdown_schedule(app)
+
+    log_info("Good bye!")
+}
+
+
+// ============================================================================
+// Startup
+// ============================================================================
+
+startup_platform :: proc(app: ^App) {
+    app.running = true
+    intrinsics.atomic_store(&platform_shutdown_requested, 0)
+
+    posix.signal(.SIGINT,  handle_signal)
+    posix.signal(.SIGTERM, handle_signal)
+}
+
+startup_logging :: proc(app: ^App) {
+    log_init(level = .TRACE, log_dir = ".logs/app.jsonl")
+
+    log_title(app.settings.name)
+    log_info("App Version %s starting", app.settings.version)
+}
+
+startup_runtime :: proc(app: ^App) {
+    app.time.fixed_delta = 1.0 / 60.0
+
+    init_world(&app.world)
+    build_plugins(app)
+}
+
+build_plugins :: proc(app: ^App) {
+    for plugin in app.plugins {
+        plugin.build(app)
+    }
+}
+
+
+// ============================================================================
+// Main Loop
+// ============================================================================
+
+run_frame :: proc(app: ^App) {
+    poll_platform_events(app)
+    run_systems(app, .Frame_Begin)
+
+    app.time.accumulator += app.time.delta
+    run_fixed_updates(app)
+    run_systems(app, .Update)
+    
+    // run_systems(app, .Frame_End)
+}
+
+run_fixed_updates :: proc(app: ^App) {
+    for app.time.accumulator >= app.time.fixed_delta {
+        run_systems(app, .Fixed_Update)
+        app.time.accumulator -= app.time.fixed_delta
+    }
+}
+
+
+// ============================================================================
+// Shutdown
+// ============================================================================
+
+shutdown_schedule :: proc(app: ^App) {
+    delete(app.schedule.startup)
+    delete(app.schedule.update)
+    delete(app.schedule.fixed_update)
+}
+
+
+// ============================================================================
+// Platform Shutdown
+// ============================================================================
+
+app_request_shutdown :: proc(app: ^App) {
+    app.running = false
+}
+
+poll_platform_events :: proc(app: ^App) {
+    if intrinsics.atomic_load(&platform_shutdown_requested) != 0 {
+        app_request_shutdown(app)
+    }
+}
+
+platform_shutdown_requested: i32
+
+handle_signal :: proc "c" (signal: posix.Signal) {
+    intrinsics.atomic_store(&platform_shutdown_requested, 1)
 }
