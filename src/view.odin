@@ -1,9 +1,5 @@
 package engine
 
-import "core:fmt"
-import rl "vendor:raylib"
-
-// import ecs "deps:odin_ecs/src"
 import ecs "../deps/odin_ecs/src"
 
 // register_view(app, Position, Velocity)
@@ -14,45 +10,45 @@ TypePairs :: struct {
 }
 
 
-// register_view :: proc(
-//     app: ^App,
-//     $T: typeid,
-//     $U: typeid,
-// ) {
-//     if app.views == nil {
-//         app.views = make(map[TypePairs]rawptr)
-//     }
+register_view :: proc(
+    world: ^World,
+    $T: typeid,
+    $U: typeid,
+) {
+    if world.views == nil {
+        world.views = make(map[TypePairs]rawptr)
+    }
 
-//     key := TypePairs{T, U}
+    key := TypePairs{T, U}
 
-//     t_table := get_table(app, T)
-//     u_table := get_table(app, U)
+    t_table := get_table(world, T)
+    u_table := get_table(world, U)
 
-//     view := new(ecs.View)
+    view := new(ecs.View)
 
-//     ecs.view_init(
-//         view,
-//         &app.db,
-//         {t_table, u_table},
-//     )
+    ecs.view_init(
+        view,
+        &world.db,
+        {t_table, u_table},
+    )
 
-//     app.views[key] = view
-// }
+    world.views[key] = view
+}
 
 
-// get_view :: proc(
-//     app: ^App,
-//     $T: typeid,
-//     $U: typeid,
-// ) -> ([]^T, []^U) {
-//     pair := TypePairs{T, U}
+get_view :: proc(
+    world: ^World,
+    $T: typeid,
+    $U: typeid,
+) -> ([]^T, []^U) {
+    pair := TypePairs{T, U}
 
-//     ptr, ok := app.views[pair]
-//     if !ok {
-//         return nil, nil
-//     }
+    ptr, ok := world.views[pair]
+    if !ok {
+        return nil, nil
+    }
 
-//     view := cast(^ecs.View)ptr
+    view := cast(^ecs.View)ptr
 
-//     return ecs.slice(view, T), ecs.slice(view, U)
-// }
+    return ecs.slice(view, T), ecs.slice(view, U)
+}

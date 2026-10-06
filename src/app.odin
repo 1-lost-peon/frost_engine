@@ -2,6 +2,7 @@ package engine
 
 import "base:intrinsics"
 import "core:sys/posix"
+import rl "vendor:raylib"
 
 App :: struct {
     settings: App_Settings,
@@ -38,6 +39,7 @@ app_startup :: proc(app: ^App) {
     startup_logging(app)
     startup_runtime(app)
     run_systems(app, .Startup)
+    rl.SetTargetFPS(60)
 }
 
 app_run :: proc(app: ^App) {
@@ -54,6 +56,8 @@ app_shutdown :: proc(app: ^App) {
 
     shutdown_world(&app.world)
     shutdown_schedule(app)
+
+    delete(app.plugins)
 
     log_info("Good bye!")
 }
@@ -82,6 +86,7 @@ startup_runtime :: proc(app: ^App) {
     app.time.fixed_delta = 1.0 / 60.0
 
     init_world(&app.world)
+    register_component(&app.world, Timer)
     build_plugins(app)
 }
 
@@ -99,18 +104,21 @@ build_plugins :: proc(app: ^App) {
 run_frame :: proc(app: ^App) {
     poll_platform_events(app)
     run_systems(app, .Frame_Begin)
-
     app.time.accumulator += app.time.delta
     run_fixed_updates(app)
     run_systems(app, .Update)
-    
     // run_systems(app, .Frame_End)
 }
 
 run_fixed_updates :: proc(app: ^App) {
+    log_trace("app.time.accumulator: %v", app.time.accumulator)
+    log_trace("app.time.delta: %v", app.time.delta)
+    log_trace("app.time.delta: %v", rl.GetFrameTime())
     for app.time.accumulator >= app.time.fixed_delta {
         run_systems(app, .Fixed_Update)
+        log_trace("fixed update running")
         app.time.accumulator -= app.time.fixed_delta
+        timer_system_update(app)
     }
 }
 
@@ -144,4 +152,15 @@ platform_shutdown_requested: i32
 
 handle_signal :: proc "c" (signal: posix.Signal) {
     intrinsics.atomic_store(&platform_shutdown_requested, 1)
+}
+
+
+// ============================================================================
+// Plugins
+// ============================================================================
+
+add_plugins :: proc (app: ^App, plugins: []Plugin) {
+    for plugin in plugins {
+        append(&app.plugins, plugin)
+    }
 }

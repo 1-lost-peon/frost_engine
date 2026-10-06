@@ -38,7 +38,7 @@ register_component :: proc(world: ^World, $T: typeid, cap := 100) {
     ecs.table_init(table, &world.db, cap)
 
     world.tables[id] = table
-    fmt.println("Registered ", id, " as a new component.")
+    log_info("Component Registered: %v", id)
 }
 
 get_table :: proc(world: ^World, $T: typeid) -> ^ecs.Table(T) {
