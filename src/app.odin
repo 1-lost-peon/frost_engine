@@ -35,11 +35,11 @@ App_Settings :: struct {
 // ============================================================================
 
 app_startup :: proc(app: ^App) {
+    add_plugins(app, Raylib_Plugins)
     startup_platform(app)
     startup_logging(app)
     startup_runtime(app)
     run_systems(app, .Startup)
-    rl.SetTargetFPS(60)
 }
 
 app_run :: proc(app: ^App) {
