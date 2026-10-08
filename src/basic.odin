@@ -10,7 +10,6 @@ Transform :: struct {
     up: rl.Vector3,
 }
 
-
 default_transform :: proc(
     translation: rl.Vector3 = [3]f32{0.0, 0.0, 0.0},
     rotation: rl.Quaternion = quaternion(w = 1, x = 0, y = 0, z = 0),

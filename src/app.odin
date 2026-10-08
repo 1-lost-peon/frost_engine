@@ -14,6 +14,7 @@ App :: struct {
     time:  Time,
 
     platform: Platform,
+    renderer: Renderer,
 
     running: bool,
 }
@@ -85,8 +86,9 @@ startup_logging :: proc(app: ^App) {
 startup_runtime :: proc(app: ^App) {
     app.time.fixed_delta = 1.0 / 60.0
 
-    init_world(&app.world)
-    register_component(&app.world, Timer)
+    // init_world(&app.world)
+    // startup_world(&app.world)
+    // register_component(&app.world, Timer)
     build_plugins(app)
 }
 
@@ -111,9 +113,9 @@ run_frame :: proc(app: ^App) {
 }
 
 run_fixed_updates :: proc(app: ^App) {
-    log_trace("app.time.accumulator: %v", app.time.accumulator)
-    log_trace("app.time.delta: %v", app.time.delta)
-    log_trace("app.time.delta: %v", rl.GetFrameTime())
+    // log_trace("app.time.accumulator: %v", app.time.accumulator)
+    // log_trace("app.time.delta: %v", app.time.delta)
+    // log_trace("app.time.delta: %v", rl.GetFrameTime())
     for app.time.accumulator >= app.time.fixed_delta {
         run_systems(app, .Fixed_Update)
         log_trace("fixed update running")
@@ -158,6 +160,10 @@ handle_signal :: proc "c" (signal: posix.Signal) {
 // ============================================================================
 // Plugins
 // ============================================================================
+
+add_plugin :: proc (app: ^App, plugin: Plugin) {
+    append(&app.plugins, plugin)
+}
 
 add_plugins :: proc (app: ^App, plugins: []Plugin) {
     for plugin in plugins {

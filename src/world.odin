@@ -5,11 +5,11 @@ import "core:fmt"
 // import ecs "deps:ode_ecs/src"
 import ecs "../deps/odin_ecs/src"
 
-World :: struct {
-    db: ecs.Database,
-    tables: map[typeid]rawptr,
-    views: map[TypePairs]rawptr,
-}
+// World :: struct {
+//     db: ecs.Database,
+//     tables: map[typeid]rawptr,
+//     views: map[TypePairs]rawptr,
+// }
 
 init_world :: proc (world: ^World) {
     ecs.init(&world.db, entities_cap = 100)
