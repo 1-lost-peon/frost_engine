@@ -28,6 +28,8 @@ App_Settings :: struct {
     name:    string,
     version: string,
     mode:    App_Mode,
+    screen_width: i32,
+    screen_height: i32,
 }
 
 

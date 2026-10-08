@@ -64,11 +64,11 @@ shadows: Table(r3d.ShadowMap)
 
 raylib_startup :: proc(app: ^App) {
     // Initialize window
-    rl.InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, strings.clone_to_cstring(app.settings.name))
+    rl.InitWindow(app.settings.screen_width, app.settings.screen_height, strings.clone_to_cstring(app.settings.name))
     rl.SetTargetFPS(60)
 
     // Initialize R3D
-    r3d.Init(SCREEN_WIDTH, SCREEN_HEIGHT) 
+    r3d.Init(app.settings.screen_width, app.settings.screen_height) 
 
     app.renderer.camera.position = {0, 2, 2}
     app.renderer.camera.target = {0, 0, 0}
