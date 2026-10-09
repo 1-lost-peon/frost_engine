@@ -14,19 +14,19 @@ Time :: struct {
 }
 
 
-timer_system_update :: proc(app: ^App) {
-    dt := app.time.fixed_delta
+// timer_system_update :: proc(app: ^App) {
+//     dt := app.time.fixed_delta
 
-    timers := get_components(&app.world, Timer)
+//     timers := get_components(&app.world, Timer)
 
-    for &timer in timers {
-        timer.remaining -= dt
+//     for &timer in timers {
+//         timer.remaining -= dt
 
-        if timer.remaining <= 0 {
-            timer.ticked = true
-            timer.remaining = timer.duration
-        } else {
-            timer.ticked = false
-        }
-    }
-}
+//         if timer.remaining <= 0 {
+//             timer.ticked = true
+//             timer.remaining = timer.duration
+//         } else {
+//             timer.ticked = false
+//         }
+//     }
+// }

@@ -16,23 +16,23 @@ default_plugin :: Plugin{
 }
 
 default_plugin_build :: proc(app: ^App) {
-    register_component(&app.world, Timer)
-    register_component(&app.world, Transform)
-    register_component(&app.world, Camera3D)
+    // register_component(&app.world, Timer)
+    // register_component(&app.world, Transform)
+    // register_component(&app.world, Camera3D)
 
     // add_system(app, .Update, update_point_lights)
-    add_system(app, .Fixed_Update, timer_system_update)
+    // add_system(app, .Fixed_Update, timer_system_update)
     // add_system(app, .Startup, window_startup)
     // add_system(app, .Update, render_scene)
 }
 
 
 default_plugin_startup :: proc(app: ^App) {
-    register_component(&app.world, Timer)
-    register_component(&app.world, Camera3D)
-    register_component(&app.world, Transform)
-    register_component(&app.world, Mesh3D)
-    register_component(&app.world, MeshMaterial3d)
+    // register_component(&app.world, Timer)
+    // register_component(&app.world, Camera3D)
+    // register_component(&app.world, Transform)
+    // register_component(&app.world, Mesh3D)
+    // register_component(&app.world, MeshMaterial3d)
     // register_view(app, Camera3D, Transform)
     // register_view(app, Mesh3D, Transform)
     // register_view(app, Mesh3D, MeshMaterial3d)

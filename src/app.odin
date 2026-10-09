@@ -2,12 +2,12 @@ package engine
 
 import "base:intrinsics"
 import "core:sys/posix"
-import rl "vendor:raylib"
 
 App :: struct {
     settings: App_Settings,
 
     plugins:  [dynamic]Plugin,
+    pending_plugins:  [dynamic]Plugin,
     schedule: Schedule,
 
     world: World,
@@ -38,10 +38,13 @@ App_Settings :: struct {
 // ============================================================================
 
 app_startup :: proc(app: ^App) {
-    add_plugins(app, Raylib_Plugins)
     startup_platform(app)
     startup_logging(app)
+    log_info("Adding Raylib Plugins to App")
+    append(&app.plugins, Raylib_Plugin)
     startup_runtime(app)
+    // add_plugins(app, Raylib_Plugins)
+    log_info("App Startup")
     run_systems(app, .Startup)
 }
 
@@ -57,7 +60,7 @@ app_shutdown :: proc(app: ^App) {
     run_systems(app, .Shutdown)
     log_info("App shutting down")
 
-    shutdown_world(&app.world)
+    // shutdown_world(&app.world)
     shutdown_schedule(app)
 
     delete(app.plugins)
@@ -95,7 +98,12 @@ startup_runtime :: proc(app: ^App) {
 }
 
 build_plugins :: proc(app: ^App) {
+    log_info("[App] - Add plugins to schedule")
     for plugin in app.plugins {
+        plugin.build(app)
+    }
+    log_trace("[App] - Add custom plugins to schedule")
+    for plugin in app.pending_plugins {
         plugin.build(app)
     }
 }
@@ -111,6 +119,9 @@ run_frame :: proc(app: ^App) {
     app.time.accumulator += app.time.delta
     run_fixed_updates(app)
     run_systems(app, .Update)
+    run_systems(app, .Pre_Render)
+    run_systems(app, .Render)
+    run_systems(app, .Post_Render)
     // run_systems(app, .Frame_End)
 }
 
@@ -122,7 +133,7 @@ run_fixed_updates :: proc(app: ^App) {
         run_systems(app, .Fixed_Update)
         log_trace("fixed update running")
         app.time.accumulator -= app.time.fixed_delta
-        timer_system_update(app)
+        // timer_system_update(app)
     }
 }
 
@@ -164,11 +175,11 @@ handle_signal :: proc "c" (signal: posix.Signal) {
 // ============================================================================
 
 add_plugin :: proc (app: ^App, plugin: Plugin) {
-    append(&app.plugins, plugin)
+    append(&app.pending_plugins, plugin)
 }
 
 add_plugins :: proc (app: ^App, plugins: []Plugin) {
     for plugin in plugins {
-        append(&app.plugins, plugin)
+        append(&app.pending_plugins, plugin)
     }
 }
