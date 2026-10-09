@@ -9,6 +9,7 @@ Schedule_Stage :: enum {
     Fixed_Update,
     Pre_Render,
     Render,
+    Render_2,
     Post_Render,
     Shutdown,
 }
@@ -20,6 +21,7 @@ Schedule :: struct {
     fixed_update: [dynamic]System,
     pre_render: [dynamic]System,
     render: [dynamic]System,
+    render_2: [dynamic]System,
     post_render: [dynamic]System,
     shutdown: [dynamic]System,
 }
@@ -38,6 +40,8 @@ add_system :: proc(app: ^App, stage: Schedule_Stage, system: System) {
             append(&app.schedule.pre_render, system)
         case Schedule_Stage.Render:
             append(&app.schedule.render, system)
+        case Schedule_Stage.Render_2:
+            append(&app.schedule.render_2, system)
         case Schedule_Stage.Post_Render:
             append(&app.schedule.post_render, system)
         case Schedule_Stage.Shutdown:
@@ -69,6 +73,10 @@ run_systems :: proc(app: ^App, stage: Schedule_Stage) {
             }
         case Schedule_Stage.Render:
             for system in app.schedule.render {
+                system(app)
+            }
+        case Schedule_Stage.Render_2:
+            for system in app.schedule.render_2 {
                 system(app)
             }
         case Schedule_Stage.Post_Render:

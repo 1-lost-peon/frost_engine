@@ -16,6 +16,7 @@ Texture2D :: distinct rl.Texture2D
 TextureWrap :: distinct rl.TextureWrap
 // rl.WHITE
 WHITE :: [4]i32{255, 255, 255, 255}
+YELLOW :: [4]i32{253, 249, 0, 255}
 
 generate_mesh_plane :: proc(width: f32, length: f32, resX: i32, resZ: i32) -> Mesh {
     mesh := r3d.GenMeshPlane(width, length, resX, resZ)
@@ -53,12 +54,17 @@ set_texture_wrap :: proc(texture: rl.Texture2D, wrap: TextureWrap) {
     rl.SetTextureWrap(texture, rl.TextureWrap(wrap))
 }
 
-create_spot_light :: proc () -> Light {
-    return Light(r3d.CreateSpotLight({0, 10, 5}, {0, -1, -0.5}, 50.0, rl.Color(WHITE), 1.0))
+create_spot_light :: proc (pos: [3]f32, dir: [3]f32, range: f32, color: [4]i32, energy: f32) -> Light {
+    return Light(r3d.CreateSpotLight(pos, dir, range, rl.Color(color), energy))
 }
 
 draw_mesh :: proc (mesh: Mesh, material: Material, position: [3]f32, scale: f32) {
     r3d.DrawMesh(r3d.Mesh(mesh), r3d.Material(material), position, scale)
+}
+
+draw_line_3d :: proc (start_position: [3]f32, end_position: [3]f32, color: [4]i32) {
+    rl.DrawLine3D(start_position, end_position, rl.Color(color))
+    // rl.DrawLine3D(start_position, end_position, rl.RED)
 }
 
 push_light_ex :: proc (light: Light, _map: ShadowMap, updateShadow: bool) {
@@ -68,6 +74,7 @@ push_light_ex :: proc (light: Light, _map: ShadowMap, updateShadow: bool) {
 mesh_unload :: proc (mesh: Mesh) {
     r3d.UnloadMesh(r3d.Mesh(mesh))
 }
+
 
 /**************** 
 * CONSTANTS
@@ -89,9 +96,9 @@ Raylib_Plugin := Plugin{
 raylib_plugin_build :: proc(app: ^App) {
     log_trace("RAYLIB - Adding schedule")
     add_system(app, Schedule_Stage.Startup, raylib_startup)
-    // add_system(app, Schedule_Stage.Update, raylib_update)
     add_system(app, Schedule_Stage.Pre_Render, raylib_pre_render)
     add_system(app, Schedule_Stage.Render, raylib_render)
+    add_system(app, Schedule_Stage.Render_2, raylib_render_2)
     add_system(app, Schedule_Stage.Post_Render, raylib_post_render)
     add_system(app, Schedule_Stage.Shutdown, raylib_shutdown)
 }
@@ -126,7 +133,7 @@ raylib_startup :: proc(app: ^App) {
     r3d.Init(app.settings.screen_width, app.settings.screen_height) 
 
     // Camera
-    app.renderer.camera.position = {0, 2, 2}
+    app.renderer.camera.position = {0, 10, 10}
     app.renderer.camera.target = {0, 0, 0}
     app.renderer.camera.up = {0, 1, 0}
     app.renderer.camera.fovy = 60
@@ -159,6 +166,7 @@ raylib_pre_render :: proc(app: ^App) {
 
     r3d.Begin(rl.Camera3D(camera))
     log_trace("Raylib Pre-render done. Begin draw + begin")
+    
 }
 
 /**************** 
@@ -170,12 +178,32 @@ raylib_render :: proc(app: ^App) {
 }
 
 /**************** 
+* RENDER_2
+****************/
+
+raylib_render_2 :: proc(app: ^App) {
+    log_trace("[RAYLIB] - RENDER_2")
+    r3d.End()
+
+    camera: rl.Camera3D = rl.Camera3D{
+        position = app.renderer.camera.position,
+        target = app.renderer.camera.target,
+        up = app.renderer.camera.up,
+        fovy = app.renderer.camera.fovy,
+        projection = rl.CameraProjection.PERSPECTIVE,
+    }
+
+    rl.BeginMode3D(camera)
+}
+
+/**************** 
 * POST_RENDER
 ****************/
 
 raylib_post_render :: proc(app: ^App) {
     log_trace("[RAYLIB] - POST_RENDER")
-    r3d.End()
+
+    rl.EndMode3D()
 
     rl.DrawFPS(10, 10)
 

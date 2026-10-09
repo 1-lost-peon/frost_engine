@@ -121,6 +121,7 @@ run_frame :: proc(app: ^App) {
     run_systems(app, .Update)
     run_systems(app, .Pre_Render)
     run_systems(app, .Render)
+    run_systems(app, .Render_2)
     run_systems(app, .Post_Render)
     // run_systems(app, .Frame_End)
 }
